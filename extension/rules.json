@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        { "header": "rbx-user-agent", "operation": "set", "value": "Roblox/Darwin" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "||gamejoin.roblox.com/v1/join-game",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  }
+]
