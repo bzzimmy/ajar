@@ -3,23 +3,24 @@
   "name": "Ajar",
   "version": "0.1.0",
   "description": "Join public Roblox games in the browser via Web Play.",
-  "permissions": [
-    "declarativeNetRequest"
-  ],
-  "host_permissions": [
-    "https://*.roblox.com/*"
-  ],
+  "permissions": ["declarativeNetRequest"],
+  "host_permissions": ["https://*.roblox.com/*"],
   "content_scripts": [
     {
       "matches": ["https://play.roblox.com/*"],
       "js": ["content.js"],
       "run_at": "document_start",
       "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.roblox.com/games/*", "https://www.roblox.com/*/games/*"],
+      "js": ["join-button.js"]
     }
   ],
+  "web_accessible_resources": [
+    { "resources": ["icons/globe.svg"], "matches": ["https://www.roblox.com/*"] }
+  ],
   "declarative_net_request": {
-    "rule_resources": [
-      { "id": "ajar_rules", "enabled": true, "path": "rules.json" }
-    ]
+    "rule_resources": [{ "id": "ajar_rules", "enabled": true, "path": "rules.json" }]
   }
 }
