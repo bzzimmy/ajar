@@ -6,6 +6,8 @@
 
 Ajar brings any public Roblox game into your web browser, no desktop app required. It hooks into Roblox's official Web Play client, a WebAssembly build that's normally locked down to creators playtesting their own experiences. Your existing Roblox session handles auth and nothing leaves your machine.
 
+Roblox [plans to open Web Play to everyone](https://devforum.roblox.com/t/creators-can-test-games-on-the-web/4964592); Ajar just lets you try it early.
+
 [![Watch the demo](docs/demo.jpg)](https://www.youtube.com/watch?v=bayKbZ1_q-Q)
 
 ## Install
