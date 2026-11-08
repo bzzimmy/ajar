@@ -37,7 +37,7 @@
       joinScript.NetStackTokenValue = base64ToHex(joinScript.NetStackTokenValue);
       joinScript.TokenValue = base64ToHex(joinScript.TokenValue);
 
-      const endpoint = joinScript.UdmuxEndpoints?.[0];
+      const endpoint = joinScript.UdmuxEndpoints?.[0]; // can flake with error 279, retry usually fixes it O_O
       if (endpoint?.Address) endpoint.Address = endpoint.Address.replace(/\.33$/, ".34");
 
       const gameFqdn = !joinScript.gameFqdn && buildGameFqdn(joinScript, endpoint?.Address);
