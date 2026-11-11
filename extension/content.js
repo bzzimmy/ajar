@@ -18,10 +18,19 @@
         .join("");
 
     function base64ToHex(token) {
-      if (typeof token !== "string") return token;
+      if (!token || typeof token !== "string") return token;
       if (/^[0-9a-f]{32}$/i.test(token)) return token.toLowerCase();
-      return [...atob(token)].map((char) => toHex(char.charCodeAt(0))).join("");
+      const normalized = (token.includes("%") ? decodeURIComponent(token) : token)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+      const padded = normalized.padEnd(
+        normalized.length + ((4 - (normalized.length % 4)) % 4),
+        "=",
+      );
+      return [...atob(padded)].map((char) => toHex(char.charCodeAt(0))).join("");
     }
+
+    const nextIp = (ip) => ip.replace(/\.(\d+)$/, (_, octet) => `.${Number(octet) + 1}`);
 
     function buildGameFqdn(joinScript, relay) {
       const { NetStackTokenValue: token, MachineAddress: machine, NetStackPort: port } = joinScript;
@@ -37,11 +46,13 @@
       joinScript.NetStackTokenValue = base64ToHex(joinScript.NetStackTokenValue);
       joinScript.TokenValue = base64ToHex(joinScript.TokenValue);
 
-      const endpoint = joinScript.UdmuxEndpoints?.[0]; // can flake with error 279, retry usually fixes it O_O
-      if (endpoint?.Address) endpoint.Address = endpoint.Address.replace(/\.33$/, ".34");
+      if (!joinScript.gameFqdn) {
+        const endpoint = joinScript.UdmuxEndpoints?.[0];
+        if (endpoint?.Address) endpoint.Address = nextIp(endpoint.Address);
 
-      const gameFqdn = !joinScript.gameFqdn && buildGameFqdn(joinScript, endpoint?.Address);
-      if (gameFqdn) joinScript.gameFqdn = gameFqdn;
+        const gameFqdn = buildGameFqdn(joinScript, endpoint?.Address);
+        if (gameFqdn) joinScript.gameFqdn = gameFqdn;
+      }
 
       return new TextEncoder().encode(JSON.stringify(data)).buffer;
     }
