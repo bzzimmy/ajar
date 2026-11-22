@@ -8,7 +8,7 @@
 (() => {
   "use strict";
 
-  function install(scope) {
+  function install(scope, followUserId = 0) {
     const toHex = (number, width = 2) => number.toString(16).padStart(width, "0");
 
     const ipToHex = (ip) =>
@@ -43,6 +43,7 @@
       const joinScript = data?.joinScript;
       if (!joinScript) return buffer;
 
+      followUserId = 0;
       joinScript.NetStackTokenValue = base64ToHex(joinScript.NetStackTokenValue);
       joinScript.TokenValue = base64ToHex(joinScript.TokenValue);
 
@@ -60,18 +61,30 @@
     function wrapWorkerUrl(url) {
       const src = new URL(String(url), scope.location?.href).searchParams.get("src");
       if (!src) return url;
-      const code = `(${install})(self);\nimportScripts(${JSON.stringify(new URL(src).href)});`;
+      const code = `(${install})(self, ${followUserId});\nimportScripts(${JSON.stringify(new URL(src).href)});`;
       return URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
     }
 
     if (scope.XMLHttpRequest) {
       const proto = scope.XMLHttpRequest.prototype;
-      const { open } = proto;
+      const { open, send } = proto;
       const response = Object.getOwnPropertyDescriptor(proto, "response");
 
       proto.open = function (method, url, ...rest) {
-        this.__ajarIsJoin = String(url).includes("gamejoin.roblox.com/v1/join-game");
-        return open.call(this, method, url, ...rest);
+        let target = String(url);
+        this.__ajarFollow = followUserId && target.includes("gamejoin.roblox.com/v1/join-game");
+        if (this.__ajarFollow) target = "https://gamejoin.roblox.com/v1/play-with-user";
+        this.__ajarIsJoin = target.includes("gamejoin.roblox.com/v1/");
+        return open.call(this, method, target, ...rest);
+      };
+
+      proto.send = function (body) {
+        if (this.__ajarFollow && body) {
+          const text = typeof body === "string" ? body : new TextDecoder().decode(body);
+          const json = JSON.stringify({ ...JSON.parse(text), userIdToFollow: followUserId });
+          body = typeof body === "string" ? json : new TextEncoder().encode(json);
+        }
+        return send.call(this, body);
       };
 
       Object.defineProperty(proto, "response", {
@@ -104,5 +117,8 @@
     }
   }
 
-  install(globalThis);
+  install(
+    globalThis,
+    Number(new URLSearchParams(globalThis.location?.hash?.slice(1)).get("followUserId")) || 0,
+  );
 })();

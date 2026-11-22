@@ -9,7 +9,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "||gamejoin.roblox.com/v1/join-game",
+      "urlFilter": "||gamejoin.roblox.com/v1/",
       "resourceTypes": ["xmlhttprequest", "other"]
     }
   }

@@ -13,7 +13,14 @@
       "world": "MAIN"
     },
     {
-      "matches": ["https://www.roblox.com/games/*", "https://www.roblox.com/*/games/*"],
+      "matches": [
+        "https://www.roblox.com/games/*",
+        "https://www.roblox.com/*/games/*",
+        "https://www.roblox.com/users/*/profile*",
+        "https://www.roblox.com/*/users/*/profile*",
+        "https://www.roblox.com/home*",
+        "https://www.roblox.com/*/home*"
+      ],
       "js": ["join-button.js"]
     }
   ],
