@@ -16,9 +16,30 @@
   const globe = `url(${chrome.runtime.getURL("icons/globe.svg")})`;
   const presence = new Map();
   let lastUserId = null;
+  let joinId = null;
 
   const webPlayUrl = (placeId, userId) =>
-    `https://play.roblox.com/games/start?placeId=${placeId}${userId ? `#followUserId=${userId}` : ""}`;
+    `https://play.roblox.com/games/start?placeId=${placeId}` +
+    (joinId ? `&wasmJoinId=${joinId}` : "") +
+    (userId ? `#followUserId=${userId}` : "");
+
+  // Web Play redirects back to www without this
+  async function getJoinId() {
+    const userId =
+      document.querySelector('meta[name="user-data"]')?.dataset.userid ||
+      (await fetch("https://users.roblox.com/v1/users/authenticated", { credentials: "include" })
+        .then((res) => res.json())
+        .then((data) => data?.id)
+        .catch(() => null));
+    if (!userId) return null;
+
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`wasm-hash-v1:${userId}`),
+    );
+    const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    return `3f${hex.slice(0, 16)}`;
+  }
 
   function getPlaceId(userId) {
     if (!presence.has(userId)) {
@@ -152,9 +173,14 @@
     );
   }
 
-  new MutationObserver(placeButton).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
-  placeButton();
+  getJoinId()
+    .catch(() => null)
+    .then((id) => {
+      joinId = id;
+      new MutationObserver(placeButton).observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+      placeButton();
+    });
 })();
